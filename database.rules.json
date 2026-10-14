@@ -1,0 +1,106 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "teacherUids": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": false,
+      "$uid": {
+        ".validate": "newData.isBoolean()"
+      }
+    },
+    "answerKeys": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "teachers": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "exams": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "questions": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "examsPublic": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "questionsPublic": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "students": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.isString() && newData.val().length < 5000"
+      }
+    },
+    "attemptLocks": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".write": "auth != null && $id.endsWith('_' + auth.uid) && !data.exists()",
+        ".validate": "newData.isString()"
+      }
+    },
+    "attempts": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".read": "auth != null && $id.endsWith('_' + auth.uid)",
+        ".write": "auth != null && $id.endsWith('_' + auth.uid) && newData.exists() && !root.child('attemptLocks').child($id).exists()",
+        ".validate": "newData.isString() && newData.val().length < 20000"
+      }
+    },
+    "answers": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".read": "auth != null && $id.contains('_' + auth.uid + '_')",
+        ".write": "auth != null && $id.contains('_' + auth.uid + '_') && newData.exists()",
+        ".validate": "newData.isString() && newData.val().length < 50000"
+      }
+    },
+    "grades": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".read": "auth != null && $id.endsWith('_' + auth.uid)",
+        ".validate": "newData.isString() && newData.val().length < 100000"
+      }
+    },
+    "violations": {
+      ".read": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('teacherUids').child(auth.uid).exists()",
+      "$id": {
+        ".write": "auth != null && $id.contains('_' + auth.uid + '_') && newData.exists()",
+        ".validate": "newData.isString() && newData.val().length < 5000",
+        ".read": "auth != null && $id.contains('_' + auth.uid + '_')"
+      }
+    }
+  }
+}
