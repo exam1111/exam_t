@@ -231,6 +231,34 @@ function sortedAttempts(mode) {
   return list;
 }
 
+const SHORT_VIOLATION_LABELS = {
+  TAB_SWITCH: "تبديل تبويب",
+  WINDOW_BLUR: "خروج من النافذة",
+  PAGE_UNLOAD_ATTEMPT: "محاولة إغلاق/تحديث",
+  RE_ENTRY: "عودة بعد مغادرة",
+  COPY_ATTEMPT: "نسخ",
+  PASTE_ATTEMPT: "لصق",
+  RIGHT_CLICK: "زر أيمن",
+  SHORTCUT_BLOCKED: "اختصار ممنوع",
+  REENTRY_AFTER_SUBMIT: "دخول بعد التسليم",
+};
+
+/** ملخص المخالفات في الجدول: الإجمالي + كل نوع مع عدد مرّاته */
+function violationsCellHtml(attempt) {
+  const total = violationTotal(attempt);
+  if (total === 0) return "0";
+  const list = rctx.violationsByAttempt[attempt.id] || [];
+  const counts = {};
+  list.forEach((v) => { counts[v.type] = (counts[v.type] || 0) + 1; });
+  // إن كان العدّاد المحفوظ أكبر من السجل المفصّل، نضيف الفرق كبند "غير مفصّلة"
+  const unlisted = total - list.length;
+  const chips = Object.keys(counts)
+    .sort((a, b) => counts[b] - counts[a])
+    .map((t) => `<span class="viol-chip">${escapeHtml(SHORT_VIOLATION_LABELS[t] || t)} × ${counts[t]}</span>`);
+  if (unlisted > 0) chips.push(`<span class="viol-chip">غير مفصّلة × ${unlisted}</span>`);
+  return `<div class="viol-cell"><span class="viol-badge">${total}</span><div class="viol-chips">${chips.join("")}</div></div>`;
+}
+
 function renderAttemptsTable() {
   const tbody = document.getElementById("attemptsTbody");
   computeRankings();
@@ -255,7 +283,7 @@ function renderAttemptsTable() {
       <td class="ltr">${attempt.submittedAt ? formatDateTime(attempt.submittedAt) : "—"}</td>
       <td>${scoreLabel}</td>
       <td>${rankCellHtml(attempt)}</td>
-      <td>${violationTotal(attempt) > 0 ? `<span class="viol-badge">${violationTotal(attempt)}</span>` : "0"}</td>
+      <td>${violationsCellHtml(attempt)}</td>
       <td>${attemptStatusBadge(attempt.status)}</td>
     `;
     tr.addEventListener("click", () => showDetailView(attempt.id));

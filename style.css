@@ -317,3 +317,7 @@ tbody tr:hover{background:var(--paper);}
 
 .sort-bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .sort-bar select{max-width:280px;}
+
+.viol-cell{display:flex; flex-direction:column; gap:4px; align-items:flex-start;}
+.viol-chips{display:flex; flex-wrap:wrap; gap:4px;}
+.viol-chip{background:#FBE3E3; color:#9B2C2C; border-radius:6px; padding:1px 8px; font-size:.8em; white-space:nowrap;}
