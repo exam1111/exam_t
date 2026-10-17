@@ -154,10 +154,48 @@ function renderStats() {
   nums.forEach((el, i) => (el.textContent = values[i]));
 }
 
+
+/* ---------------------- تصنيف الطلاب ---------------------- */
+
+/** فئة الأداء حسب النسبة المئوية */
+function performanceCategory(pct) {
+  if (pct >= 90) return { label: "ممتاز", cls: "cat-excellent" };
+  if (pct >= 80) return { label: "جيد جدًا", cls: "cat-verygood" };
+  if (pct >= 70) return { label: "جيد", cls: "cat-good" };
+  if (pct >= 60) return { label: "مقبول", cls: "cat-pass" };
+  return { label: "ضعيف", cls: "cat-weak" };
+}
+
+/**
+ * يرتّب المحاولات المصحّحة حسب النسبة المئوية (ثم الدرجة الخام، ثم الاسم).
+ * الطلاب بنفس النسبة يأخذون نفس الترتيب. المحاولات غير المصحّحة لا ترتيب لها.
+ */
+function computeRankings() {
+  rctx.rankById = {};
+  const graded = rctx.attempts
+    .filter((a) => a.status === "graded" && a.maxScore > 0)
+    .map((a) => ({ id: a.id, pct: (a.totalScore / a.maxScore) * 100, raw: a.totalScore, name: a.studentName || "" }))
+    .sort((x, y) => y.pct - x.pct || y.raw - x.raw || x.name.localeCompare(y.name, "ar"));
+
+  let rank = 0;
+  graded.forEach((g, i) => {
+    if (i === 0 || g.pct !== graded[i - 1].pct || g.raw !== graded[i - 1].raw) rank = i + 1;
+    rctx.rankById[g.id] = { rank, pct: g.pct, total: graded.length };
+  });
+}
+
+function rankCellHtml(attempt) {
+  const r = rctx.rankById[attempt.id];
+  if (!r) return "—";
+  const cat = performanceCategory(r.pct);
+  return `<span class="rank-num">#${r.rank}</span> <span class="cat-badge ${cat.cls}">${cat.label}</span>`;
+}
+
 function renderAttemptsTable() {
   const tbody = document.getElementById("attemptsTbody");
+  computeRankings();
   if (rctx.attempts.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">لم يدخل أي طالب هذا الامتحان بعد.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">لم يدخل أي طالب هذا الامتحان بعد.</td></tr>`;
     return;
   }
   tbody.innerHTML = "";
@@ -175,6 +213,7 @@ function renderAttemptsTable() {
       <td class="ltr">${formatDateTime(attempt.startedAt)}</td>
       <td class="ltr">${attempt.submittedAt ? formatDateTime(attempt.submittedAt) : "—"}</td>
       <td>${scoreLabel}</td>
+      <td>${rankCellHtml(attempt)}</td>
       <td>${violationTotal(attempt) > 0 ? `<span class="viol-badge">${violationTotal(attempt)}</span>` : "0"}</td>
       <td>${attemptStatusBadge(attempt.status)}</td>
     `;
