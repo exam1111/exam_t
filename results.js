@@ -94,6 +94,7 @@ guardTeacherPage(async (teacher) => {
 
     document.getElementById("autoGradeBtn").addEventListener("click", runAutoGrade);
     document.getElementById("backToListBtn").addEventListener("click", showListView);
+    document.getElementById("sortBy").addEventListener("change", renderAttemptsTable);
   } catch (err) {
     logError("results.js", err);
     showAlert(alertBox, translateError(err), "error");
@@ -191,6 +192,45 @@ function rankCellHtml(attempt) {
   return `<span class="rank-num">#${r.rank}</span> <span class="cat-badge ${cat.cls}">${cat.label}</span>`;
 }
 
+/* ---------------------- طرق الترتيب ---------------------- */
+
+function attemptPct(a) {
+  return a.status === "graded" && a.maxScore > 0 ? (a.totalScore / a.maxScore) * 100 : null;
+}
+
+/** يرتّب نسخة من المحاولات حسب الطريقة المختارة (لا يغيّر الترتيب الأصلي) */
+function sortedAttempts(mode) {
+  const list = [...rctx.attempts];
+  const nameCmp = (x, y) => (x.studentName || "").localeCompare(y.studentName || "", "ar");
+  // القيم الفارغة (غير المصحّحة) تبقى في آخر القائمة مهما كان الاتجاه
+  const byNullable = (getter, dir) => (x, y) => {
+    const a = getter(x), b = getter(y);
+    if (a == null && b == null) return nameCmp(x, y);
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return dir * (a - b) || nameCmp(x, y);
+  };
+  switch (mode) {
+    case "pct_desc": list.sort(byNullable(attemptPct, -1)); break;
+    case "pct_asc": list.sort(byNullable(attemptPct, 1)); break;
+    case "name_asc": list.sort(nameCmp); break;
+    case "name_desc": list.sort((x, y) => nameCmp(y, x)); break;
+    case "submitted_desc": list.sort((x, y) => tsMsSafe(y.submittedAt) - tsMsSafe(x.submittedAt)); break;
+    case "submitted_asc": list.sort((x, y) => tsMsSafe(x.submittedAt) - tsMsSafe(y.submittedAt)); break;
+    case "violations_desc": list.sort((x, y) => violationTotal(y) - violationTotal(x) || nameCmp(x, y)); break;
+    case "rank":
+    default:
+      list.sort((x, y) => {
+        const rx = rctx.rankById[x.id], ry = rctx.rankById[y.id];
+        if (!rx && !ry) return nameCmp(x, y);
+        if (!rx) return 1;
+        if (!ry) return -1;
+        return rx.rank - ry.rank || nameCmp(x, y);
+      });
+  }
+  return list;
+}
+
 function renderAttemptsTable() {
   const tbody = document.getElementById("attemptsTbody");
   computeRankings();
@@ -199,7 +239,8 @@ function renderAttemptsTable() {
     return;
   }
   tbody.innerHTML = "";
-  rctx.attempts.forEach((attempt) => {
+  const sortMode = document.getElementById("sortBy") ? document.getElementById("sortBy").value : "rank";
+  sortedAttempts(sortMode).forEach((attempt) => {
     const tr = document.createElement("tr");
     tr.className = "row-link";
     const scoreLabel =

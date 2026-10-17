@@ -314,3 +314,6 @@ tbody tr:hover{background:var(--paper);}
 .cat-good{background:#EDE6F5;color:#5B3E85;}
 .cat-pass{background:#FFF3D6;color:#8A6100;}
 .cat-weak{background:#FBE3E3;color:#9B2C2C;}
+
+.sort-bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.sort-bar select{max-width:280px;}

@@ -43,6 +43,19 @@
               <h3 class="mb-0">قائمة الطلاب</h3>
               <button class="btn btn-primary btn-sm" id="autoGradeBtn">تصحيح تلقائي للأسئلة الموضوعية</button>
             </div>
+            <div class="sort-bar mt-16">
+              <label for="sortBy">ترتيب حسب:</label>
+              <select id="sortBy">
+                <option value="rank">التصنيف (الأعلى درجة أولاً)</option>
+                <option value="pct_desc">المعدل: الأعلى أولاً</option>
+                <option value="pct_asc">المعدل: الأدنى أولاً</option>
+                <option value="name_asc">الاسم: أ إلى ي</option>
+                <option value="name_desc">الاسم: ي إلى أ</option>
+                <option value="submitted_desc">وقت التسليم: الأحدث أولاً</option>
+                <option value="submitted_asc">وقت التسليم: الأقدم أولاً</option>
+                <option value="violations_desc">المخالفات: الأكثر أولاً</option>
+              </select>
+            </div>
             <div class="table-wrap mt-16">
               <table>
                 <thead>
