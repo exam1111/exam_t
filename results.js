@@ -124,7 +124,9 @@ async function loadAttempts() {
   vSnap.docs.forEach((d) => {
     const v = { id: d.id, ...d.data() };
     // معرّف المخالفة = معرّف المحاولة + "_" + لاحقة بسيطة بلا شرطة سفلية، وإلا تُتجاهل
-    if (!v.attemptId || !d.id.startsWith(v.attemptId + "_") || d.id.slice(v.attemptId.length + 1).includes("_")) {
+    // مفاتيح المخالفات المحفوظة لا تحمل دائمًا معرّف المحاولة، لذلك نتحقق من الحقول داخل السجل:
+    // معرّف المحاولة يجب أن يساوي (امتحان + طالب) المكتوبين في السجل نفسه
+    if (!v.attemptId || v.attemptId !== `${v.examId}_${v.studentUid}`) {
       diag.dropped.push({ docId: d.id, attemptId: v.attemptId || null });
       return;
     }
