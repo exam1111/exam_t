@@ -120,13 +120,22 @@ async function loadAttempts() {
   // سجل المخالفات (خروج من الامتحان، نسخ/لصق، محاولة دخول بعد التسليم...)
   const vSnap = await db.collection(COLLECTIONS.VIOLATIONS).where("examId", "==", rctx.examId).get();
   rctx.violationsByAttempt = {};
+  const diag = { returned: vSnap.docs.length, kept: 0, dropped: [] };
   vSnap.docs.forEach((d) => {
     const v = { id: d.id, ...d.data() };
     // معرّف المخالفة = معرّف المحاولة + "_" + لاحقة بسيطة بلا شرطة سفلية، وإلا تُتجاهل
-    if (!v.attemptId || !d.id.startsWith(v.attemptId + "_") || d.id.slice(v.attemptId.length + 1).includes("_")) return;
+    if (!v.attemptId || !d.id.startsWith(v.attemptId + "_") || d.id.slice(v.attemptId.length + 1).includes("_")) {
+      diag.dropped.push({ docId: d.id, attemptId: v.attemptId || null });
+      return;
+    }
+    diag.kept += 1;
     (rctx.violationsByAttempt[v.attemptId] = rctx.violationsByAttempt[v.attemptId] || []).push(v);
   });
   Object.values(rctx.violationsByAttempt).forEach((list) => list.sort((a, b) => tsMsSafe(a.timestamp) - tsMsSafe(b.timestamp)));
+  // تشخيص: عدد السجلات التي وصلت من قاعدة البيانات، وما تم تجاهله ولماذا
+  console.info("[violations-diag]", { returned: diag.returned, kept: diag.kept, dropped: diag.dropped.length, sampleDropped: diag.dropped.slice(0, 5) });
+  const attemptsWithCounter = rctx.attempts.filter((a) => Number(a.violationCount) > 0).map((a) => a.id);
+  console.info("[violations-diag] attempts with counter>0:", attemptsWithCounter.length, "sample:", attemptsWithCounter.slice(0, 3));
 
   renderStats();
   renderAttemptsTable();
